@@ -1,0 +1,96 @@
+%%% ideas.tex --- 
+
+%% Author: bob@nic-aruba-dhcp-224-203.wireless-pennnet.upenn.edu
+%% Version: $Id: ideas.tex,v 0.0 2011/11/15 15:17:48 bob Exp$
+
+
+
+\documentclass[12pt,a4paper]{article}
+%include lhs2Tex.sty
+%include polycode.fmt
+%format forall a = "\forall " a
+%format :*: = "\times"
+%format . = "."
+%format :+: = "+"
+%format alpha = "\alpha"
+%format beta = "\beta"
+%format && = "\wedge"
+%format || = "\vee"
+%% || for |code| for inlining
+
+\usepackage[latin9]{inputenc}
+\usepackage[letterpaper]{geometry}
+\geometry{verbose,tmargin=1in,bmargin=1in,lmargin=1in,rmargin=1in}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{array}
+\usepackage{enumerate}
+\usepackage{tikz}
+% New commands serve as shorthand for frequently used command combinations.
+\newcommand{\ind}[1]{\mathbf{1}\left(#1\right)}
+\newcommand{\bx}{\mathbf{x}}
+\newcommand{\E}{\mathbf{E}}
+%%\usepackage[debugshow,final]{graphics}
+%%\revision$Header: /Users/bob/SourceCode/course/520/cutelittlethings/code/ideas.tex,v 0.0 2011/11/15 15:17:48 bob Exp$
+%% \title{}
+\begin{document}
+%% \maketitle
+\setcounter{tocdepth}{3}
+\tableofcontents
+\vspace*{1cm}
+\begin{verbatim}
+vocab : 1 * 125166
+bigram : 1 * 1578919
+
+Stop words -- remove some symbolized words (first letter cap)(Microsoft)
+-- have some threshold for feature matrix (some bigger frequency)
+-- chunk all reviews together and remove <?? occurance words (traning only)
+-- this can also remove the dimension matrix
+
+Stop words for bigram
+-- remove bigrams that both words are stop words or symbolized words
+
+Look into:
+LSA : Latent semantic analysis - HIGH
+SentiwordNet and other senti dictionaries -- rank the emotional words
+- MEDIUM
+Wordnet: Algorithm to find senti levels - LOW
+
+Possible features:
+tf.idf for both unigram and bigram
+build word/bigram feature space for training & rating label, calculate
+cosine similarity
+user and dates, usefulness
+give larger weights of all capitalized words
+
+hist(double(vertcat(test.word_count)))
+
+-- most word occurs less than 20 (some )
+
+-- hist(cellfun(@length,words),100)
+
+-- intersection kernel
+
+\end{verbatim}
+
+\section{problem}
+\begin{itemize}
+\item my scaling is problematic (should have the same scaling factor???)
+\item when should I use L1 -regularized classifiers? \\
+  if you would like to identifier important featurs.
+  For most cases, \emph{L1 regularization does not give higher accuracy,
+    but maybe slower in training}. (seldom useful, can have a try, however)
+  
+\end{itemize}
+
+
+
+
+\end{document}
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: t
+%%% End: 

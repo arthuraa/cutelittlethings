@@ -1,16 +1,31 @@
-function [test_err info ] = kernel_libsvm(Ylabel,Yfeature)
+function [test_err info ] = kernel_libsvm(Ylabel,Yfeature,parameter,crange,v)
   % tuned parameters
-  model_parameter = '-s 4  ';
-    
+    if ~exist('parameter','var')
+      model_parameter = '-s 4  ';
+    else 
+      model_parameter = parameter ;
+    end 
+    if ~exist('crange', 'var')
+      crange = [ 0.02 0.1 0.5 1 ];
+    end
+
+    if ~exist('v','var')
+      v = ' -v 3 '
+    end
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  % '-s 4 -v 10 -c 100' - too time consuming
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Ylabel An n by 1 vector of train labels. (type must be double)
 % Yfeature An n by m matrix of n training instances with m features 
 %   it must be a sparse matrix. (type must be double)  
   
   % crange = 10.^(-10:2:4); 
-  crange = 10.^(-2:2:2);
+  % crange = 10.^(-2:2:2);
+
+  %% for -s 4 c range = 0.5 stands out
   for i = 1:numel(crange)
     fprintf('-------------------------------------------------\n');
-    par = [model_parameter, sprintf('-v 10 -c %g', crange(i))];
+    par = [model_parameter, ' ',  v , sprintf(' -c %g', crange(i))];
     fprintf('train parameters: %s\n', par);
     acc(i) = train(Ylabel, Yfeature,par);
 
@@ -93,7 +108,7 @@ function [test_err info ] = kernel_libsvm(Ylabel,Yfeature)
   model = train(Ylabel,Yfeature, ...
                 [model_parameter, sprintf(' -c %g', crange(bestc))]);
   
-  [yhat, ~, vals] = predict(Ylabel,Yfeature,model);
+  [yhat, ~, vals] = predict(Ylabel,Yfeature,model,'-b 1');
   % predict(testing_label, testing_feature,model, options)
   % testing_label : if unknown, just give random values 
   % testing_feature: an n by m matrix of n testing instances with m
