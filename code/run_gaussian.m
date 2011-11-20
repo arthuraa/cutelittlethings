@@ -22,13 +22,17 @@ include_for_title = histogram_title > 100;
 
 Xbody = make_sparse(train, size(vocab, 2));
 Xtitle = make_sparse_title(train, size(vocab, 2));
+Xhelpful = extract_helpful(train);
 X = [Xbody Xtitle];
 X = X(:, vertcat(include_for_body, include_for_title));
+X = [X Xhelpful];
 
 Xtest_body = make_sparse(test, size(vocab, 2));
 Xtest_title = make_sparse_title(test, size(vocab, 2));
+Xtest_helpful = extract_helpful(test);
 Xtest = [Xtest_body Xtest_title];
 Xtest = Xtest(:, vertcat(include_for_body, include_for_title));
+Xtest = [Xtest Xtest_helpful];
 
 %% train model
 
@@ -42,7 +46,7 @@ training_rmse = norm(double([train.rating]') - training_predictions) / ...
 
 % 1000, 500 = 1.5660
 % 1000, 100 = 1.2687
-
+% 1000, 100 + helpful = 1.2647
 
 
 
