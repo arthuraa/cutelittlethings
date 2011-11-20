@@ -16,7 +16,7 @@ for i = 1:size(train, 2)
 end
 
 include_for_body = histogram_body > 1000;
-include_for_title = histogram_title > 500;
+include_for_title = histogram_title > 100;
 
 %% build feature matrix, selecting important features
 
@@ -32,15 +32,19 @@ Xtest = Xtest(:, vertcat(include_for_body, include_for_title));
 
 %% train model
 
-model = train_gaussian(X, [train.rating], 1);
+model = train_gaussian(X, [train.rating], 0.0025);
 
-%% training RMSE
+% training RMSE
 
 training_predictions = predict_gaussian(model, X);
 training_rmse = norm(double([train.rating]') - training_predictions) / ...
     sqrt(size(training_predictions, 1))
 
-% = 1.5796
+% 1000, 500 = 1.5660
+% 1000, 100 = 1.2687
+
+
+
 
 %% predictions
 
