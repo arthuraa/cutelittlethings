@@ -10,15 +10,11 @@ for c = 1:4
     class_idx = Y == a(c);
     Xclass = X(class_idx, :);
 
+    Xclass = vertcat(Xclass, eye(size(Xclass, 2)));
+
     model(c).mean = full(mean(Xclass));
     model(c).cov = full(cov(Xclass));
     model(c).p = sum(class_idx) / size(X, 1);
-
-    % HACK: force positive definite
-    need_fix = find(sum(Xclass, 1) == 0);
-    for i = need_fix
-        model(c).cov(i, i) = C;
-    end
 
     % Check
     if ~test_pd(model(c).cov)
