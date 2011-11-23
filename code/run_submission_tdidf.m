@@ -8,6 +8,7 @@ addpath ./liblinear-1.8/matlab ;
 
 %% slow loading
 load ../data/data_no_bigrams.mat;
+load ../data/data_with_bigrams.mat;
 
 %% stem preprocesssing
 % stem_file = fopen('stems.txt');
@@ -47,6 +48,10 @@ X = make_sparse(train, numel(vocab));
 Xtrain_title = make_sparse_title(train, numel(vocab));
 %Xtrain_title = Xtrain_title(:, histogram.title >= 0);
 Xtrain_helpful = extract_helpful(train);
+Xtrain_helpful_ratio = Xtrain_helpful(:,1) ./ (Xtrain_helpful(:,2) ...
+                                               + 0.01);
+Xtrain_length = sum(X, 2);
+
 
 %Xtest = make_sparse(test, size(vocab, 2));
 %Xtest_title = make_sparse_title(test, size(vocab, 2));
@@ -62,6 +67,7 @@ Xtrain_title_scale = bsxfun(@rdivide, Xtrain_title', ...
 scale_helpful = max(max(Xtrain_helpful), 1);
 Xtrain_helpful_scale = bsxfun(@rdivide, Xtrain_helpful', ...
                               scale_helpful')';
+Xtrain_length_scale = Xtrain_length / max(Xtrain_length);
 %Xtrain_scale = scale_features(X, word_weights);
 %Xtrain_title_scale = scale_features(Xtrain_title, word_weights);
 %Xtest_scale = scale_features(Xtest, word_weights);
@@ -69,19 +75,15 @@ Xtrain_helpful_scale = bsxfun(@rdivide, Xtrain_helpful', ...
 
 %% cross validation
 categories_train = [train.category];
-combine_features = [Xtrain_scale (1.149*Xtrain_title_scale) (5.25*Xtrain_helpful_scale)];
+combine_features = [Xtrain_scale (1.149*Xtrain_title_scale) ...
+                    (5.25*Xtrain_helpful_scale) ...
+                    (5.25*Xtrain_helpful_ratio) ...
+                    (8*Xtrain_length_scale)];
 rmse = ...
     category_validation_all(Y, double(combine_features), ...
                             double(categories_train), ...
                             '-s 4 -c 0.068 -q', 9.09)
 
-% c = 0.06, p = 9, f = 1.1: 0.897435
-% c = 0.08, p = 9, f = 1.1: 0.8996
-% c = 0.06, p = 9, f = 1.1: 0.897412
-% c = 0.07, p = 9, f = 1.1: 0.897392
-% c = 0.069, p = 9, f = 1.1: 0.897375
-% c = 0.068, p = 9, f = 1.1: 0.897356
-% c = 0.068, p = 9, f = 1.15: 0.897335
 % c = 0.068, p = 9.09, f = 1.149: 0.897321
 % c = 0.068, p = 9.09, f = 1.149: 0.895576 (with helpful)
 % c = 0.068, p = 9.09, f = 1.149, g = 2.5: 0.894358 (with helpful)
@@ -90,8 +92,12 @@ rmse = ...
 % c = 0.068, p = 9.09, f = 1.149, g = 5: 0.893821 (with helpful)
 % c = 0.068, p = 9.09, f = 1.149, g = 5.5: 0.893817 (with helpful)
 % c = 0.068, p = 9.09, f = 1.149, g = 5.25: 0.893780 (with helpful)
+% c = 0.068, p = 9.09, f = 1.149, g = 5.25: 0.892286 (with helpful
+% and ratio)
+% c = 0.068, p = 9.09, f = 1.149, g = 5.25, h = 5.25: 0.892049 (with helpful
+% and ratio)
 
-
+% 0.891669
 %% test using those parameters
 [acc, info] = kernel_libsvm(Y, combine_features, '-s 4 -q', ...
                             [0.068]);
