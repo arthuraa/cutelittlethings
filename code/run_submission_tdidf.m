@@ -9,40 +9,67 @@ addpath ./liblinear-1.8/matlab ;
 %% slow loading
 load ../data/data_no_bigrams.mat;
 
-%% quick loading
-X = make_sparse(train, size(vocab, 2));
-Y = double([train.rating])';
-Xtest = make_sparse(test, size(vocab, 2));
-load 'stop_index.txt' stop_index ; % load the data into stop_index;
-load invalid_index.mat ;
-idf_data = importdata('idf.txt', ' ');
-word_weights = idf_data.data;
-word_weights = word_weights / max(word_weights); % scale word weights
+%% stem preprocesssing
+% stem_file = fopen('stems.txt');
+% stems = textscan(stem_file, '%s');
+% stems = stems{1};
+% fclose(stem_file);
+% raw_data = importdata('idf.txt', ' ');
+% stem_idx = raw_data.data(:,1) + 1;
+% word_weights = raw_data.data(:,2);
+% word_weights = word_weights / max(word_weights); % scale word
+%                                                  % weights
+% t = CTimeleft(numel(train));
+% for i = 1:numel(train)
+%     t.timeleft();
+%     [train_s(i).word_idx, train_s(i).word_count] = ...
+%         stem_words(train(i).word_idx, train(i).word_count, ...
+%                    stem_idx);
+%     [train_s(i).title_idx, train_s(i).title_count] = ...
+%         stem_words(train(i).title_idx, train(i).title_count, ...
+%                    stem_idx);
+% end
 
+%% make feature matrices
+
+Y = double([train.rating])';
+
+% X = make_sparse(train, numel(stems));
+% X = X(:, selector);
+% Xtrain_title= make_sparse_title(train, numel(stems));
+% Xtrain_title = Xtrain_title(:, selector);
+
+% histogram = word_histogram(train, 1, 1, 0, numel(vocab), ...
+%                            0);
+
+X = make_sparse(train, numel(vocab));
+%X = X(:, histogram.body >= 0);
+Xtrain_title = make_sparse_title(train, numel(vocab));
+%Xtrain_title = Xtrain_title(:, histogram.title >= 0);
+Xtrain_helpful = extract_helpful(train);
+
+%Xtest = make_sparse(test, size(vocab, 2));
+%Xtest_title = make_sparse_title(test, size(vocab, 2));
 
 %% liblinear
 
 %% scale
-scale_word = max(max(X), 1);
-Xtrain_scale = bsxfun(@rdivide, X',scale_word')';
-Xtrain_scale = bsxfun(@times, Xtrain_scale', word_weights)';
-
-% since we can only use the features we have
-Xtest_scale = bsxfun(@rdivide, Xtest', scale_word')';
-Xtest_scale = bsxfun(@times, Xtest_scale', word_weights)';
-
-Xtrain_title= make_sparse_title(train, size(vocab, 2)) ;
-scale_title = max(max(Xtrain_title),1);
+scale_words = max(max(X), 1); % weird out of memory bug
+Xtrain_scale = bsxfun(@rdivide, X', scale_words')';
+scale_title = max(max(Xtrain_title), 1);
 Xtrain_title_scale = bsxfun(@rdivide, Xtrain_title', ...
                             scale_title')';
-Xtrain_title_scale = bsxfun(@times, Xtrain_title_scale', word_weights)';
-Xtest_title = make_sparse_title(test, size(vocab, 2));
-Xtest_title_scale = bsxfun(@rdivide, Xtest_title', scale_title')';
-Xtest_title_scale = bsxfun(@times, Xtest_title_scale', word_weights)';
+scale_helpful = max(max(Xtrain_helpful), 1);
+Xtrain_helpful_scale = bsxfun(@rdivide, Xtrain_helpful', ...
+                              scale_helpful')';
+%Xtrain_scale = scale_features(X, word_weights);
+%Xtrain_title_scale = scale_features(Xtrain_title, word_weights);
+%Xtest_scale = scale_features(Xtest, word_weights);
+%Xtest_title_scale = scale_features(Xtest_title, word_weights);
 
 %% cross validation
 categories_train = [train.category];
-combine_features = [Xtrain_scale (1.149*Xtrain_title_scale)];
+combine_features = [Xtrain_scale (1.149*Xtrain_title_scale) (5.25*Xtrain_helpful_scale)];
 rmse = ...
     category_validation_all(Y, double(combine_features), ...
                             double(categories_train), ...
@@ -56,6 +83,14 @@ rmse = ...
 % c = 0.068, p = 9, f = 1.1: 0.897356
 % c = 0.068, p = 9, f = 1.15: 0.897335
 % c = 0.068, p = 9.09, f = 1.149: 0.897321
+% c = 0.068, p = 9.09, f = 1.149: 0.895576 (with helpful)
+% c = 0.068, p = 9.09, f = 1.149, g = 2.5: 0.894358 (with helpful)
+% c = 0.068, p = 9.09, f = 1.149, g = 4: 0.893832 (with helpful)
+% c = 0.068, p = 9.09, f = 1.149, g = 8: 0.893862 (with helpful)
+% c = 0.068, p = 9.09, f = 1.149, g = 5: 0.893821 (with helpful)
+% c = 0.068, p = 9.09, f = 1.149, g = 5.5: 0.893817 (with helpful)
+% c = 0.068, p = 9.09, f = 1.149, g = 5.25: 0.893780 (with helpful)
+
 
 %% test using those parameters
 [acc, info] = kernel_libsvm(Y, combine_features, '-s 4 -q', ...
