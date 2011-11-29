@@ -1,4 +1,5 @@
-function [test_err info ] = kernel_libsvm(Ylabel,Yfeature,parameter,crange,v)
+function [test_err info bestp] = kernel_libsvm(Ylabel,Yfeature, ...
+                                          parameter,crange,categories)
   % tuned parameters
     if ~exist('parameter','var')
       model_parameter = '-s 4  ';
@@ -9,9 +10,19 @@ function [test_err info ] = kernel_libsvm(Ylabel,Yfeature,parameter,crange,v)
       crange = [ 0.02 0.1 0.5 1 ];
     end
 
-    if ~exist('v','var')
-      v = ' -v 3 '
-    end
+    % if ~exist('v','var')
+    %   v = '  '
+    % end
+
+
+    
+
+
+
+    prange = [8 9 10];
+    error = zeros([size(crange,2), size(prange,2)]);
+    % error = zeros(size(crange,1),size(prange,1))  ;
+    
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % '-s 4 -v 10 -c 100' - too time consuming
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -24,10 +35,26 @@ function [test_err info ] = kernel_libsvm(Ylabel,Yfeature,parameter,crange,v)
 
   %% for -s 4 c range = 0.5 stands out
   for i = 1:numel(crange)
-    fprintf('-------------------------------------------------\n');
-    par = [model_parameter, ' ',  v , sprintf(' -c %g', crange(i))];
-    fprintf('train parameters: %s\n', par);
-    acc(i) = train(Ylabel, Yfeature,par);
+
+      % fprintf('-------------------------------------------------\n');
+      % par = [model_parameter, ' ',  v , sprintf(' -c %g', crange(i))];
+      % fprintf('train parameters: %s\n', par);
+      % model = train(Ylabel, Yfeature,par);
+   for p = 1:numel(prange)      
+     for category = 1:11 
+       [~, rmse,~, square_error ] = ... 
+           category_validation(Ylabel,Yfeature,categories, category, ... 
+                               sprintf('-q -s 4 -c %g ', crange(i)), ...
+                               prange(p));
+       % fprintf('acc : %g  rmse : % g \n', acc, rmse) ; 
+       error(i,p) = error(i,p) + rmse ; 
+     end 
+     % error(i,p) = sqrt(error(i,p) / size(Ylabel,1));
+     error(i,p) = error(i,p) ./ 11 ; 
+     fprintf('c : %g p : %g total error rate %g\n',crange(i), ... 
+             prange(p) , error(i,p)) ; 
+   end 
+
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%    
     % here we have a lot of options to tune 
@@ -101,9 +128,12 @@ function [test_err info ] = kernel_libsvm(Ylabel,Yfeature,parameter,crange,v)
     %     C^m_i = 0 if m != y_i.
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   end 
-  [~,bestc] = max(acc);
-  fprintf('Training finished .... \n')
-  fprintf('Cross-val-liblinear chose best C = %g \n',crange(bestc)); 
+  [bestc,bestp, error ] =  mini_2d(error) ; 
+
+  fprintf('Cross-val-liblinear chose best C = %g best p = % g, error : %g \n', ... 
+          crange(bestc), ...
+          prange(bestp), ... 
+          error); 
   
   model = train(Ylabel,Yfeature, ...
                 [model_parameter, sprintf(' -c %g', crange(bestc))]);
@@ -122,6 +152,7 @@ function [test_err info ] = kernel_libsvm(Ylabel,Yfeature,parameter,crange,v)
   info.yhat = yhat;
   info.model = model ; 
   test_err = mean(yhat ~=Ylabel);
+  
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%    
   % Q: LIBLINEAR is slow for my data (reaching the maximal number of iterations)? % Very likely you use a large C or don't scale data. If your number of features is small, you may use the option
   % -s 2
