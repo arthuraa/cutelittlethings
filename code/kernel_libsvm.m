@@ -19,7 +19,7 @@ function [test_err info bestp] = kernel_libsvm(Ylabel,Yfeature, ...
 
 
 
-    prange = [ 9 ];
+    prange = [ 8 ];
     error = zeros([size(crange,2), size(prange,2)]);
     % error = zeros(size(crange,1),size(prange,1))  ;
     

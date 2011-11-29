@@ -7,7 +7,9 @@
 format long ; addpath ./liblinear-1.8/; addpath ./liblinear-1.8/matlab ; 
 
 %% sparse_mapping 
-mapping = load('mapping.txt','-ascii');
+mapping = load( 'mapping_index_stemming.txt','-ascii');
+
+mapping  = mapping(mapping(:,2) > 0,:)  ; 
 sparse_mapping = sparse(mapping(:,1),mapping(:,2),1);
 clear mapping ;
 %% no_bigrams
@@ -28,6 +30,7 @@ load XY_sparse.mat ; load Xtest_sparse ; %% load X Y;
 X = X * sparse_mapping(1: size(X,2),:) ; 
 Xtest = Xtest * sparse_mapping ; 
 
+my_data.test_of_x = Xtest ; 
 
 % load 'stop_index.txt' stop_index ; % load the data into stop_index;
 % load invalid_index.mat ;
@@ -137,40 +140,22 @@ my_data.strain_of_x = bsxfun(@rdivide, X, my_data.scale_of_x);
 %% model 
 %% parameters c p (-B 1 ) 
 %% 
+
+% stop_index = 5773
+stop_index = 1 ; 
 logic_index_word = sum(my_data.train_of_x,1) > 0; 
-logic_index_word(1:5773) = 0 ;
+logic_index_word(1:stop_index) = 0 ;
 
 logic_index_title = sum(my_data.strain_of_title) > 0 ;
-logic_index_title(1:5773) = 0 ; 
+logic_index_title(1:stop_index) = 0 ; 
 
 logic_index = logic_index_word | logic_index_title ; 
 
 
 %% load new_words table 
-new_words = load_cell_string('mapping_new_words.txt') ; 
+new_words = load_cell_string('mapping_stemming_words.txt') ; 
 
 
-
-%% weight correlation for body 
-cor_body = select_features_gaussian(my_data.strain_of_x(:,logic_index_word), ...
-                                my_data.train_of_y);
-[vs ,idx ] = sort(abs(cor_body),'descend');
-
-step = find(logic_index_word); 
-mean_cor_body = mean(abs(cor_body)) ; 
-
-cor_body(idx(1:10));
-{new_words{step(idx(1:10)) }};
-
-
-
-%% weight correlation for title 
-cor_title = select_features_gaussian(my_data.strain_of_title(:, ...
-                                                  logic_index_title), ...
-                                     my_data.train_of_y); 
-[vs_t, idx_t] = sort (abs(cor_title), 'descend');
-step_t = find(logic_index_title); 
-mean_cor_title = mean(abs(cor_title)) ; 
 
 %% features 
 combine_features = [my_data.strain_of_x(:,logic_index_word)    ... 
@@ -185,20 +170,16 @@ cor_combine_features = ...
 
 [combine_res, combine_idx]  = sort(abs(cor_combine_features), ...
                                    'descend');
-
 %% c = 10 15 20 -> better 
 
-mean_cor_combine = mean(combine_res) ; 
-max_cor_combine = max(combine_res);
+mean_cor_combine = mean(combine_res)  
+max_cor_combine = max(combine_res)
 
 % scale_c = 0.4 ;
-
 % [test_err info ] = kernel_libsvm(my_data.train_of_y, combine_weighted_features, ...
 %                                 '-s 4 -q ', [ 0.05,0.055, 0.06,0.07], ...
 %                                 my_data.train_of_categories);
-
 % scale_c = 4 ; 
-
 % combine_weighted_features = ...
 %     bsxfun(@times, combine_features, ...
 %            tan(pi / 4  + scale_c * abs(cor_combine_features)));
@@ -211,7 +192,7 @@ combine_weighted_features = ...
 
 %% 0.05 > 0.06 
 [test_err info ] = kernel_libsvm(my_data.train_of_y, combine_weighted_features, ...
-                                '-s 4 -q ', [ 0.05, 0.06,0.07,0.08], ...
+                                '-s 4 -q ', [0.05 ], ...
                                 my_data.train_of_categories);
 
 %% test features 
@@ -226,13 +207,13 @@ combine_weighted_test_features = ...
            exp(scale_c .* (abs(cor_combine_features) - ...
                            mean_cor_combine)));
 
-[yhat_pre,acc_pre ,vals_pre] = predict(zeros(size(combine_test_features),1), ...
-                              combine_test_features, info.model, ...
+[yhat_pre,acc_pre ,vals_pre] = predict(zeros(size(combine_weighted_test_features),1), ...
+                              combine_weighted_test_features, info.model, ...
                               '-b 1') ; 
 
 %% extract_helpful data 
 %% p = 10 for 11_16
-a = vals_pre.^8.5 ; 
+a = vals_pre.^8 ; 
 c = bsxfun(@rdivide, a, sum(a,2));
 y_exp = c * [1;2;4;5];
 save('-ascii','submit.txt','y_exp');
@@ -606,3 +587,25 @@ yhat2=load('./submit_c_0.5_stop_word-s-4.txt','-ascii') ;
 % Xtest_scale_filter(:,invalid_index) = 0 ; 
 % [yhat, ~, vals] = predict(zeros(size(Xtest_scale_filter,1),1), ... 
 %                           Xtest_scale_filter,info_filter.model);
+%% weight correlation for body 
+cor_body = select_features_gaussian(my_data.strain_of_x(:,logic_index_word), ...
+                                my_data.train_of_y);
+[vs ,idx ] = sort(abs(cor_body),'descend');
+
+step = find(logic_index_word); 
+mean_cor_body = mean(abs(cor_body)) ; 
+
+cor_body(idx(1:10))
+{new_words{step(idx(1:10)) }}
+
+
+%% weight correlation for title 
+cor_title = select_features_gaussian(my_data.strain_of_title(:, ...
+                                                  logic_index_title), ...
+                                     my_data.train_of_y); 
+[vs_t, idx_t] = sort (abs(cor_title), 'descend');
+step_t = find(logic_index_title); 
+mean_cor_title = mean(abs(cor_title))  
+cor_title(idx_t(1:10));
+{new_words{step(idx_t(1:10)) }}
+

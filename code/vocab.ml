@@ -106,6 +106,37 @@ let replace_word file_name =
   )
 
 
+
+let trim s =
+  let len = String.length s          in
+  let rec aux_1 i = (*locate leading whitespaces*)
+    if   i = len then None (*The whole string is whitespace*)
+    else if not(Char.is_letter s.[i]) then aux_1 (i + 1)
+    else Some i in
+  match aux_1 0 with
+    | None -> ""
+    | Some last_leading_whitespace ->
+  let rec aux_2 i =
+    if   i < 0 then None(*?*)
+    else if not(Char.is_letter s.[i]) then aux_2 (i - 1)
+    else Some i in
+  match aux_2 (len - 1) with
+    | None -> ""
+    | Some first_trailing_whitespace ->
+	String.slice ~first:last_leading_whitespace 
+          ~last:(first_trailing_whitespace + 1) s
+
+
+
+let _ = replace_word "vocab.replace.txt" 
+(* #remove_printer Batteries_print.string_set;; *)
+
+
+(** hash_tbl is the initial  mapping fuction 
+   0 -> "I"
+*)
+let trans = String.lowercase |- trim 
+
 let string_set = 
   let _ = 
     Array.iteri (fun i v -> 
@@ -114,44 +145,42 @@ let string_set =
         Hashtbl.add hashtbl i v
     ) vocab
   in Hashtbl.values hashtbl 
+  |> Enum.filter_map 
+      (fun s -> 
+       let v = trans s  in 
+       if v = "" then None 
+       else Some v ) (* ingore*)
   |> StringSet.of_enum
-  
-  
+
+
+
+
+(** ignore case : 84838 -> 57782 -> 49938*)
+
+(** co_domain 
+   "i" -> 21257 
+*)  
+
 let co_domain = 
   string_set 
   |> StringSet.enum 
-  |> Enum.mapi (fun i v -> (v,i))
+  |> Enum.mapi (fun i v -> (v,i)) 
   |> Hashtbl.of_enum 
 
 
-
+(** it finally appeared *)
 let mapping = 
   Array.mapi (fun i v -> (i, 
-                          let s = Hashtbl.find hashtbl i
+                          let s = trans ( Hashtbl.find hashtbl i) in 
+                          let ind = 
+                            (try Hashtbl.find co_domain s
+                            with
+                                Not_found -> -1  ) 
                           in 
-                          ((Hashtbl.find co_domain s), s))) vocab 
+                          (ind, s))) vocab 
   |> Array.enum 
   |> Hashtbl.of_enum 
 
-
-let id = 
-  (Hashtbl.find mapping (Hashtbl.find vocab_hashbl "disapionted"),
-   Hashtbl.find mapping (Hashtbl.find vocab_hashbl "disappointed"))
-
-;; 
-
-
-let write_mapping = 
-  mapping 
-  |> Hashtbl.enum
-  |> Enum.map (fun (i,(j,v))  -> 
-                    string_of_int (i+1) ^ "  " ^ string_of_int  (j+1))
-  |>
-      File.write_lines "mapping.txt"
-
-(* mapping_vocab.(54273);;
-- : Batteries_uni.Set.StringSet.elt = "disappointed"
-*)
 let mapping_vocab = 
   string_set 
   |> StringSet.enum 
@@ -159,10 +188,91 @@ let mapping_vocab =
   |> Array.of_enum 
 ;;
 
+let id = 
+  (Hashtbl.find mapping (Hashtbl.find vocab_hashbl "disapionted"),
+   Hashtbl.find mapping (Hashtbl.find vocab_hashbl "disappointed"))
+
+;; 
+(* test
+
+Hashtbl.find mapping 0 , vocab.(0)
+Hashtbl.find mapping 1 , vocab.(1)
+
+*)
+
+
+let search str = 
+  Array.findi (fun x -> x = str) mapping_vocab;;
+
+(** first mapping *)
+let write_mapping = 
+  mapping 
+  |> Hashtbl.enum
+  |> Enum.map (fun (i,(j,v))  -> 
+                    string_of_int (i+1) ^ "  " ^ string_of_int  (j+1))
+  |>
+      File.write_lines "mapping.txt"
 let _ = 
   mapping_vocab 
   |> Array.enum 
   |> File.write_lines "mapping_new_words.txt"
+
+
+let stemming = 
+   "mapping_stemming.txt"
+  |> File.lines_of
+  |> Enum.mapi (fun i line -> 
+    let (k,v) = String.split line " "
+    in (String.trim k, String.trim v))
+  |> Hashtbl.of_enum
+
+
+let co_domain_stemming = 
+  stemming |> Hashtbl.values 
+  |> StringSet.of_enum  
+  |> StringSet.enum 
+  |> Enum.mapi (fun i v -> (v,i))
+  |> Hashtbl.of_enum 
+
+let co_domain_stemming_reverse = 
+  stemming |> Hashtbl.values 
+  |> StringSet.of_enum  
+  |> StringSet.enum 
+  |> Enum.mapi (fun i v -> (i,v))
+  |> Hashtbl.of_enum 
+  
+exception Temp 
+
+let mapping_2 = 
+  Array.mapi (fun i v -> 
+  (i, 
+   (let j, correct_word = Hashtbl.find mapping i  in 
+   (try    
+     let stemming_word = 
+       try 
+         Hashtbl.find stemming correct_word 
+       with Not_found -> raise Temp 
+     in
+     Hashtbl.find co_domain_stemming stemming_word 
+   with Temp  -> -1) ))) vocab
+
+let _ = 
+  mapping_2 
+  |> Array.enum 
+  |> Enum.map (fun (i,j) -> 
+    string_of_int (i + 1) ^ " " ^
+    string_of_int (j + 1))
+  |> File.write_lines "mapping_index_stemming.txt"
+
+let _ = 
+  co_domain_stemming_reverse 
+  |> Hashtbl.values
+  |> File.write_lines "mapping_stemming_words.txt"
+(* mapping_vocab.(54273);;
+- : Batteries_uni.Set.StringSet.elt = "disappointed"
+*)
+
+
 (*
 Hashtbl.find vocab_hashtdisapointing
 *)
