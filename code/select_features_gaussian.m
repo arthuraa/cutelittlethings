@@ -11,8 +11,7 @@ for i = 1:size(X, 2)
     corrs(i) = m(1,2);
 end
 
-sorted = sort(abs(corrs), 'descend');
+% sorted = sort(abs(corrs), 'descend');
+% cut = sorted(N);
 
-cut = sorted(N);
-
-features = abs(corrs) >= cut;
+features = corrs;
