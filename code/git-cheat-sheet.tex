@@ -1,0 +1,83 @@
+%%% git-cheat-sheet.tex --- 
+
+%% Author: bob@vpl667.wireless-pennnet.upenn.edu
+%% Version: $Id: git-cheat-sheet.tex,v 0.0 2011/11/14 16:00:55 bob Exp$
+
+
+
+\documentclass[12pt,a4paper]{article}
+%include lhs2Tex.sty
+%include polycode.fmt
+%format forall a = "\forall " a
+%format :*: = "\times"
+%format . = "."
+%format :+: = "+"
+%format alpha = "\alpha"
+%format beta = "\beta"
+%format && = "\wedge"
+%format || = "\vee"
+%% || for |code| for inlining
+
+\usepackage[latin9]{inputenc}
+\usepackage[letterpaper]{geometry}
+\geometry{verbose,tmargin=1in,bmargin=1in,lmargin=1in,rmargin=1in}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{array}
+\usepackage{enumerate}
+\usepackage{tikz}
+% New commands serve as shorthand for frequently used command combinations.
+\newcommand{\ind}[1]{\mathbf{1}\left(#1\right)}
+\newcommand{\bx}{\mathbf{x}}
+\newcommand{\E}{\mathbf{E}}
+%%\usepackage[debugshow,final]{graphics}
+%%\revision$Header: /Users/bob/SourceCode/course/520/final/code/git-cheat-sheet.tex,v 0.0 2011/11/14 16:00:55 bob Exp$
+%% \title{}
+\begin{document}
+%% \maketitle
+\setcounter{tocdepth}{3}
+\tableofcontents
+\vspace*{1cm}
+
+\section{ssh}
+\label{sec:ssh}
+\begin{verbatim}
+http://help.github.com/mac-set-up-git/
+\end{verbatim}
+
+\section{commands}
+\begin{verbatim}
+git init
+git add README
+git commit -m 'first commit'
+
+git remote add origin git@github.com:bobzhang/tiny-things.git
+git push origin master
+
+-- fork
+-- fork in the internet first 
+git clone git@github.com:username/xx.git
+cd xx
+git remote add upstream git://github.com/octocat/Spoon-Knife.git
+git fetch upstream
+git merge upstream/master 
+--
+git branch
+git log
+
+-- 
+git add
+git commit 
+\end{verbatim}
+
+
+
+
+\end{document}
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: t
+%%% End: 

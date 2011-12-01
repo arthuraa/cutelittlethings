@@ -1,0 +1,32 @@
+;; RefTeX parse info file
+;; File: /Users/bob/SourceCode/course/520/cutelittlethings/code/git-cheat-sheet.tex
+;; User: bob (bobzhang)
+
+(set reftex-docstruct-symbol '(
+
+
+(xr nil "\\\\\\\\\\\\")
+
+(index-tags)
+
+(is-multi nil)
+
+(bibview-cache)
+
+(master-dir . "/Users/bob/SourceCode/course/520/final/code/")
+
+(label-numbers)
+
+(bof "/Users/bob/SourceCode/course/520/final/code/git-cheat-sheet.tex")
+
+(toc "toc" "    1 ssh" "/Users/bob/SourceCode/course/520/final/code/git-cheat-sheet.tex" nil 2 "1" "\\section{ssh}" 1162)
+
+("sec:ssh" "s" nil "/Users/bob/SourceCode/course/520/final/code/git-cheat-sheet.tex" nil "")
+
+(toc "toc" "    2 ssh" "/Users/bob/SourceCode/course/520/final/code/git-cheat-sheet.tex" nil 2 "1" "\\section{ssh}" 1162)
+
+(toc "toc" "    3 commands" "/Users/bob/SourceCode/course/520/final/code/git-cheat-sheet.tex" nil 2 "2" "\\section{commands}" 1264)
+
+(eof "/Users/bob/SourceCode/course/520/final/code/git-cheat-sheet.tex")
+))
+

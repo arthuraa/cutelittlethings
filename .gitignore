@@ -1,2 +1,1 @@
-*.mat
-code/liblinear/
+data/*
