@@ -1,32 +1,16 @@
 function model = train_least_squares(X, Y, quiet)
-% TRAIN_LEAST_SQUARES -
+% TRAIN_LEAST_SQUARES - Train a linear regression model
 %
+%   X - N x K feature matrix with N data points
+%   Y - N x 1 vector of training labels
+%   QUIET - Suppress output
 
 if ~exist('quiet', 'var')
     quiet = false;
 end
 
-Xtrans = zeros(size(X));
-coeffs = zeros(2, size(X, 2));
-
-if ~quiet
-    fprintf('Transforming feature matrix...\n');
-    t = CTimeleft(size(X, 2));
-end
-for f = 1:size(X, 2)
-    if ~quiet
-        t.timeleft();
-    end
-    coeffs(1, f) = mean(Y(X(:, f) == 0));
-    Xtrans(X(:, f) == 0, f) = coeffs(1, f);
-    coeffs(2, f) = mean(Y(X(:, f) == 0));
-    Xtrans(X(:, f) > 0, f) = coeffs(2, f);
-end
-
-Xtrans = X;
-
 n_feat = size(X, 2);
-program.C = [Xtrans ones(size(Xtrans, 1), 1)];
+program.C = [X ones(size(X, 1), 1)];
 program.d = Y;
 program.lb = -Inf;
 program.up = Inf;
@@ -37,7 +21,6 @@ program.options = optimset('Display', 'off');
 rmse = sqrt(resnorm / numel(Y));
 
 model.alpha = alpha;
-model.coeffs = coeffs;
 model.rmse = rmse;
 
 

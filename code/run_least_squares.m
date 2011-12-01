@@ -13,14 +13,18 @@ Xtrain_helpful_ratio = Xtrain_helpful(:,1) ./ (Xtrain_helpful(:,2) ...
                                                + 0.01);
 Xtrain_length = sum(Xtrain_body, 2);
 
-% Xtest = make_sparse(test, numel(vocab));
-% Xtest_title = make_sparse_title(test, numel(vocab));
-% Xtest_helpful = extract_helpful(test);
-% Xtest_helpful_ratio = Xtest_helpful(:,1) ./ (Xtest_helpful(:,2) ...
-%                                              + 0.01);
-% Xtest_length = sum(Xtest, 2);
+Xtest_body = make_sparse(test, numel(vocab));
+Xtest_title = make_sparse_title(test, numel(vocab));
+Xtest_bigram = make_sparse_bigram(test, numel(bigram_vocab));
+Xtest_helpful = extract_helpful(test);
+Xtest_helpful_ratio = Xtest_helpful(:,1) ./ (Xtest_helpful(:,2) ...
+                                             + 0.01);
+Xtest_length = sum(Xtest_body, 2);
 
 %% compute histogram
+
+% We remove features that occur more often in few categories than
+% on the entire data set.
 
 histogram.body = sum(Xtrain_body > 0);
 histogram.title = sum(Xtrain_title > 0);
@@ -59,7 +63,13 @@ train_features = [Xtrain_body(:, body_features) ...
                   Xtrain_helpful Xtrain_helpful_ratio ...
                   Xtrain_length];
 
-size(train_features, 2)
+test_features = [Xtest_body(:, body_features) ...
+                 Xtest_title(:, title_features) ...
+                 Xtest_bigram(:, bigram_features) ...
+                 Xtest_helpful Xtest_helpful_ratio ...
+                 Xtest_length];
+
+fprintf('Using %d features\n', size(train_features, 2));
 
 %% category cross validation
 
@@ -86,7 +96,12 @@ end
 rmse = mean(rmses);
 fprintf('Mean RMSE = %f\n', rmse);
 
-%% train model
+%% train final model
 
 model = train_least_squares(train_features, Y);
 
+%% predict on test set
+
+predictions = predict_least_squares(model, test_features);
+
+save('-ascii', 'submit.linear-regression.txt', 'predictions');
