@@ -37,7 +37,13 @@ model = train_knn(X.features, Y, 100, 10);
 %% train error
 
 p = predict_knn(model, X.features, 2);
+calc_rmse(p, Y);
 
-%% free tree
+%% test predictions
+
+predictions = predict_knn(model, Xtest.features, 2);
+save('-ascii', 'submit.knn.txt', 'predictions');
+
+%% free trees
 
 destroy_knn_model(model);
