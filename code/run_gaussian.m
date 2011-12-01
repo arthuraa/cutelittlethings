@@ -1,6 +1,5 @@
 %% loading
 
-load ../data/data_no_bigrams.mat;
 load ../data/data_with_bigrams.mat;
 
 %% word frequency histogram
@@ -33,17 +32,17 @@ Xhelpful = extract_helpful(train);
 X = [Xbody(:,include_for_body) Xtitle(:,include_for_title) ...
      Xbigram(:, include_for_bigram) Xhelpful];
 Y = double([train.rating]');
-%Xtest_body = make_sparse(test, size(vocab, 2));
-%Xtest_title = make_sparse_title(test, size(vocab, 2));
-%Xtest_helpful = extract_helpful(test);
-%Xtest = [Xtest_body(:,include_for_body) Xtest_title(:,include_for_title) Xtest_helpful];
+
+Xtest_body = make_sparse(test, size(vocab, 2));
+Xtest_title = make_sparse_title(test, size(vocab, 2));
+Xtest_bigram = make_sparse_bigram(test, size(bigram_vocab, 2));
+Xtest_helpful = extract_helpful(test);
+Xtest = [Xtest_body(:,include_for_body) Xtest_title(:,include_for_title) Xtest_helpful];
 
 %% select good features
 
 features = select_features_gaussian(X, Y, 400);
 Xuse = X(:, features);
-
-%Xtest = Xtest(:, features);
 
 %% train model
 
@@ -57,8 +56,6 @@ training_rmse = norm(Y - training_predictions) / sqrt(size(Y, 1))
 % 1000, 500 = 1.5660
 % 1000, 100 = 1.2687
 % 1000, 100 + helpful = 1.2647
-
-
 
 %% predictions
 

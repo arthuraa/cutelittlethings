@@ -1,8 +1,10 @@
 function predictions = predict_gaussian(model, X, quiet)
 % PREDICT_GAUSSIAN -
 %
-
-% E[Y|X = x] = \sum
+%   MODEL - model trained with train_gaussian
+%   X - matrix of test points
+%   QUIET - suppress output
+%
 
 densities = zeros(size(X, 1), 4);
 
