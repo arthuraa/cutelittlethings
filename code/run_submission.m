@@ -225,9 +225,9 @@ save('bigram_idx.mat', 'stest_bigram', 'strain_bigram');
 
 
 %% reload the image and then add features ?
-clear ;
-load 'image.mat' ;
-load 'bigram_idx.mat' ;
+%clear ;
+%load 'image.mat' ;
+%load 'bigram_idx.mat' ;
 
 if debug
   for bigram_coeff = linspace(0.3,1,10)
