@@ -1,6 +1,12 @@
 function model = train_knn(X, Y, sample_size, n_samples)
-% TRAIN_KNN -
+% TRAIN_KNN - Trains a KNN model
+%   X - N x K matrix with N data points
+%   Y - N x 1 vector of training labels
+%   SAMPLE_SIZE - How many datapoints per sample there will be.
+%   N_SAMPLES - Number of samples
 %
+% Since running KNN on the entire data set is too expensive, we
+% take many samples from the training set to make it more tracktable
 
 sample_labels = zeros(sample_size, n_samples);
 
