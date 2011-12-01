@@ -37,20 +37,24 @@ Xtest_body = make_sparse(test, size(vocab, 2));
 Xtest_title = make_sparse_title(test, size(vocab, 2));
 Xtest_bigram = make_sparse_bigram(test, size(bigram_vocab, 2));
 Xtest_helpful = extract_helpful(test);
-Xtest = [Xtest_body(:,include_for_body) Xtest_title(:,include_for_title) Xtest_helpful];
+Xtest = [Xtest_body(:,include_for_body) ...
+         Xtest_title(:,include_for_title) ...
+         Xtest_bigram(:,include_for_bigram) ...
+         Xtest_helpful];
 
 %% select good features
 
 features = select_features_gaussian(X, Y, 400);
-Xuse = X(:, features);
+Xtrain = X(:, features);
+Xtest = Xtest(:, features);
 
 %% train model
 
-model = train_gaussian(Xuse, Y, 0.0025);
+model = train_gaussian(Xtrain, Y, 0.0025);
 
 % training RMSE
 
-training_predictions = predict_gaussian(model, Xuse);
+training_predictions = predict_gaussian(model, Xtrain);
 training_rmse = norm(Y - training_predictions) / sqrt(size(Y, 1))
 
 % 1000, 500 = 1.5660
@@ -60,3 +64,5 @@ training_rmse = norm(Y - training_predictions) / sqrt(size(Y, 1))
 %% predictions
 
 predictions = predict_gaussian(model, Xtest);
+
+save('-ascii', 'submit.gaussian.txt', 'predictions');
