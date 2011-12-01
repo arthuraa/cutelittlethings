@@ -1,4 +1,4 @@
-function [test_err info bestp] = kernel_libsvm(Ylabel,Yfeature, ...
+function [test_err info bestp error] = kernel_libsvm(Ylabel,Yfeature, ...
                                           parameter,crange,categories)
   % tuned parameters
     if ~exist('parameter','var')
@@ -19,7 +19,7 @@ function [test_err info bestp] = kernel_libsvm(Ylabel,Yfeature, ...
 
 
 
-    prange = [ 8 ];
+    prange = linspace(5,13,10);
     error = zeros([size(crange,2), size(prange,2)]);
     % error = zeros(size(crange,1),size(prange,1))  ;
     
@@ -40,20 +40,23 @@ function [test_err info bestp] = kernel_libsvm(Ylabel,Yfeature, ...
       % par = [model_parameter, ' ',  v , sprintf(' -c %g', crange(i))];
       % fprintf('train parameters: %s\n', par);
       % model = train(Ylabel, Yfeature,par);
-   for p = 1:numel(prange)      
      for category = 1:11 
        [~, rmse,~, square_error ] = ... 
            category_validation(Ylabel,Yfeature,categories, category, ... 
                                sprintf('-q -s 4 -c %g ', crange(i)), ...
-                               prange(p));
+                               prange);
        % fprintf('acc : %g  rmse : % g \n', acc, rmse) ; 
-       error(i,p) = error(i,p) + rmse ; 
+       error(i,:) = error(i,:) + rmse ; 
      end 
+
      % error(i,p) = sqrt(error(i,p) / size(Ylabel,1));
-     error(i,p) = error(i,p) ./ 11 ; 
-     fprintf('c : %g p : %g total error rate %g\n',crange(i), ... 
-             prange(p) , error(i,p)) ; 
-   end 
+     error(i,:) = error(i,:) ./ 11 ; 
+     fprintf('error matrix finish \n'); 
+     disp(error); 
+     fprintf('error matrix end \n'); 
+     % fprintf('c : %g p : %g total error rate %g\n',crange(i), ... 
+     %         prange(p) , error(i,p)) ; 
+  end 
 
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%    
@@ -127,7 +130,7 @@ function [test_err info bestp] = kernel_libsvm(Ylabel,Yfeature, ...
     % and C^m_i = C if m  = y_i,
     %     C^m_i = 0 if m != y_i.
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  end 
+  
   [bestc,bestp, error ] =  mini_2d(error) ; 
 
   fprintf('Cross-val-liblinear chose best C = %g best p = % g, error : %g \n', ... 

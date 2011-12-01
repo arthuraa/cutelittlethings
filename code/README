@@ -1,0 +1,62 @@
+
+
+Dependency 
+  Our program *does not depends on any external data source*. 
+  But during the preprocessing stage (the preprocessing did not play 
+  an important role, since it was done in early days, we did not want 
+  to roll back), we used other programs 
+
+1.We used the GNU aspell (built in biglab) program to do the spell checking 
+  in matlab, first save vocab as a text file.
+  We have included a cell2csv.m file to help you saving.
+  type 
+___________________________________________________________
+  cell2csv('vocab.back.txt', vocab,'\n')
+___________________________________________________________
+
+  then in the shell
+___________________________________________________________
+  aspell -a < vocab.back.txt > vocab.replace.txt 
+___________________________________________________________
+
+  then we used vocab.ml (ocaml script, biglab has ocaml3.12 installed) to 
+  parse the vocab.replace.txt 
+  in the ocaml interactive just type the commands.
+___________________________________________________________
+  #load "vocab.ml"
+___________________________________________________________
+  Ocaml code depends on a community library called batteries that 
+  is a defacto standard library.
+
+  It will generate a file *'mapping_index_stemming.txt'*, and 
+  other useless files for debugging purposes.
+     
+  In the script file vocab.ml, after correcting spelling, the python
+  script stem.py is invoked, to stem the words using the nltk package.
+  
+  ___________________________________________________________
+  #u "./stem.py > mapping_stemming.txt" ;;
+  ___________________________________________________________
+         
+
+   To conclude, our main matlab file run_submission.m depends on 
+   only one file 'mapping_index_stemming.txt' which is built as 
+   described above,  If you have any trouble in building such a file,
+   my email address * bobzhang1988@gmail.com * , we would be happy to help.
+
+   We have included mapping_index_stemming.txt for your convenience. 
+   In general, the spell checking seems to have a minor improvement, 
+   the stemming does not make sense, but we did not want to roll back :-)
+
+
+2. in run_submission.m 
+   there are some places that look weird, like saving a file and loading it immediately afterwards. The reason for this is that we saved some intermediate results to save loading time. However, this shouldn't be a problem.
+
+Thanks!
+
+
+
+
+
+
+
